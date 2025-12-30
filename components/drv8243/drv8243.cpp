@@ -61,35 +61,35 @@ void DRV8243Output::dump_config() {
 void DRV8243Output::setup() {
   ESP_LOGI(TAG, "setup: begin");
 
-// //   pin setup only — no sleeps, no pulses
-//   if (nsleep_pin_) { nsleep_pin_->setup(); nsleep_pin_->pin_mode(gpio::FLAG_OUTPUT); nsleep_pin_->digital_write(true); }
-//   if (nfault_pin_) { nfault_pin_->setup(); nfault_pin_->pin_mode(gpio::FLAG_INPUT | gpio::FLAG_PULLUP); }
-//   if (direction_pin_) { direction_pin_->setup(); direction_pin_->pin_mode(gpio::FLAG_OUTPUT); direction_pin_->digital_write(direction_high_); }
+//   pin setup only — no sleeps, no pulses
+  if (nsleep_pin_) { nsleep_pin_->setup(); nsleep_pin_->pin_mode(gpio::FLAG_OUTPUT); nsleep_pin_->digital_write(true); }
+  if (nfault_pin_) { nfault_pin_->setup(); nfault_pin_->pin_mode(gpio::FLAG_INPUT | gpio::FLAG_PULLUP); }
+  if (direction_pin_) { direction_pin_->setup(); direction_pin_->pin_mode(gpio::FLAG_OUTPUT); direction_pin_->digital_write(direction_high_); }
 
-//   ESP_LOGI(TAG, "setup: pins configured, deferring handshake 3s");
-//   this->set_timeout("drv8243_hs", 3000, [this]() {
-//     ESP_LOGI(TAG, "handshake: starting (deferred)");
-//     this->do_handshake_("deferred");
-//     ESP_LOGI(TAG, "handshake: done");
-//   });
+  ESP_LOGI(TAG, "setup: pins configured, deferring handshake 3s");
+  this->set_timeout("drv8243_hs", 3000, [this]() {
+    ESP_LOGI(TAG, "handshake: starting (deferred)");
+    this->do_handshake_("deferred");
+    ESP_LOGI(TAG, "handshake: done");
+  });
 
   ESP_LOGI(TAG, "setup: end");
 }
 
 void DRV8243Output::run_handshake(const char *reason) {
-//   ESP_LOGW(TAG, "run_handshake(): requested (reason=%s)", reason);
+  ESP_LOGW(TAG, "run_handshake(): requested (reason=%s)", reason);
 
-//   // (Optional) make sure PWM is off while we do the handshake to avoid flicker
-//   if (raw_output_ != nullptr) {
-//     ESP_LOGI(TAG, "run_handshake(): forcing raw_output OFF (0.0) before handshake");
-//     raw_output_->set_level(0.0f);
-//   }
+  // (Optional) make sure PWM is off while we do the handshake to avoid flicker
+  if (raw_output_ != nullptr) {
+    ESP_LOGI(TAG, "run_handshake(): forcing raw_output OFF (0.0) before handshake");
+    raw_output_->set_level(0.0f);
+  }
 
-//   bool ok = this->do_handshake_(reason);
-//   this->handshaked_ = true;
-//   this->handshake_ok_ = ok;
+  bool ok = this->do_handshake_(reason);
+  this->handshaked_ = true;
+  this->handshake_ok_ = ok;
 
-//   ESP_LOGW(TAG, "run_handshake(): done ok=%s", ok ? "true" : "false");
+  ESP_LOGW(TAG, "run_handshake(): done ok=%s", ok ? "true" : "false");
 }
 
 void DRV8243Output::pulse_nsleep_ack_() {
