@@ -44,8 +44,8 @@ void DRV8243Output::setup() {
   if (nsleep_pin_ != nullptr) {
     nsleep_pin_->setup();
     nsleep_pin_->pin_mode(gpio::FLAG_OUTPUT);
-    nsleep_pin_->digital_write(false);  // start in SLEEP
-    ESP_LOGD(TAG, "nSLEEP configured as output, driven LOW (SLEEP)");
+    nsleep_pin_->digital_write(true);  // default: AWAKE
+    ESP_LOGD(TAG, "nSLEEP configured as output, driven HIGH (awake)");
   } else {
     ESP_LOGW(TAG, "nSLEEP pin not configured! DRV8243 will not wake.");
   }
@@ -75,51 +75,53 @@ void DRV8243Output::do_handshake_() {
 
   ESP_LOGD(TAG, "=== DRV8243 wake/ACK handshake start ===");
 
-  // 1) Ensure SLEEP: nSLEEP LOW, hold 50 ms
-  ESP_LOGD(TAG, "Handshake: forcing SLEEP (nSLEEP LOW) for 50ms");
+  // 1) Force SLEEP: nSLEEP LOW 50ms
   nsleep_pin_->digital_write(false);
+  ESP_LOGD(TAG, "Handshake: nSLEEP -> LOW (force sleep) 50ms");
   delay(50);
 
   // 2) Wake: nSLEEP HIGH
-  ESP_LOGD(TAG, "Handshake: driving nSLEEP HIGH to wake DRV8243");
   nsleep_pin_->digital_write(true);
+  ESP_LOGD(TAG, "Handshake: nSLEEP -> HIGH (wake)");
 
-  // 3) Wait up to 200 ms for nFAULT LOW (device ready)
-  bool ready = false;
+  // 3) Wait up to 200ms for nFAULT LOW
+  bool saw_ready = false;
   if (nfault_pin_ != nullptr) {
-    ESP_LOGD(TAG, "Handshake: waiting up to 200ms for nFAULT LOW (ready)");
+    ESP_LOGD(TAG, "Handshake: waiting up to 200ms for nFAULT LOW");
     for (int i = 0; i < 200; i++) {
-      bool fault_level = nfault_pin_->digital_read();
-      if (!fault_level) {
-        ESP_LOGD(TAG, "Handshake: nFAULT went LOW after %d ms – device ready", i);
-        ready = true;
+      if (!nfault_pin_->digital_read()) {
+        ESP_LOGD(TAG, "Handshake: nFAULT LOW after %d ms", i);
+        saw_ready = true;
         break;
       }
       delay(1);
     }
-    if (!ready) {
-      ESP_LOGW(TAG, "Handshake: timeout waiting for nFAULT LOW; continuing anyway");
+    if (!saw_ready) {
+      ESP_LOGW(TAG, "Handshake: nFAULT never went LOW (timeout), ACKing anyway");
     }
-  } else {
-    ready = true;
   }
 
-  // 4) ACK pulse: nSLEEP LOW for ~10 µs (<40 µs), then HIGH
+  // 4) ACK pulse: nSLEEP LOW ~10us, then HIGH
   ESP_LOGD(TAG, "Handshake: issuing ACK pulse on nSLEEP (~10us LOW)");
   nsleep_pin_->digital_write(false);
-  delayMicroseconds(25);
+  delayMicroseconds(10);
   nsleep_pin_->digital_write(true);
-  ESP_LOGD(TAG, "Handshake: ACK pulse complete; nSLEEP held HIGH");
+  ESP_LOGD(TAG, "Handshake: ACK pulse complete; nSLEEP set HIGH");
 
-  delay(200);
-  bool faultState = nfault_pin_->digital_read();
-  bool sleepState = nsleep_pin_->digital_read();
-  ESP_LOGD(TAG, "FAULT = %s", faultState ? "HIGH" : "LOW");
-  ESP_LOGD(TAG, "SLEEP = %s", sleepState ? "HIGH" : "LOW");
+  // 5) Small settle delay, then re-read pins
+  delay(5);
+  bool fault_state = nfault_pin_ ? nfault_pin_->digital_read() : true;
+  bool sleep_state = nsleep_pin_->digital_read();
+  ESP_LOGD(TAG, "Handshake end: nFAULT=%s, nSLEEP=%s",
+           fault_state ? "HIGH" : "LOW",
+           sleep_state ? "HIGH" : "LOW");
+
+  // 6) Force final awake state just in case
+  nsleep_pin_->digital_write(true);
+  ESP_LOGD(TAG, "Handshake: final nSLEEP forced HIGH");
 
   ESP_LOGD(TAG, "=== DRV8243 wake/ACK handshake end ===");
 }
-
 void DRV8243Output::write_state(float state) {
   if (raw_output_ == nullptr)
     return;
