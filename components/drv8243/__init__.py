@@ -2,6 +2,7 @@ import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import output
 from esphome.const import CONF_ID
+from esphome import pins
 
 CONF_RAW_OUTPUT = "raw_output"
 CONF_NSLEEP_PIN = "nsleep_pin"
@@ -11,18 +12,20 @@ CONF_DIRECTION_HIGH = "direction_high"
 CONF_MIN_LEVEL = "min_level"
 CONF_EXPONENT = "exponent"
 
-drv8243_ns = cg.esphome_ns.namespace("drv8243_smart")
+drv8243_ns = cg.esphome_ns.namespace("drv8243")
 DRV8243Output = drv8243_ns.class_("DRV8243Output", cg.Component, output.FloatOutput)
 
 CONFIG_SCHEMA = output.FLOAT_OUTPUT_SCHEMA.extend(
     {
         cv.GenerateID(): cv.declare_id(DRV8243Output),
         cv.Required(CONF_RAW_OUTPUT): cv.use_id(output.FloatOutput),
-        cv.Required(CONF_NSLEEP_PIN): cv.gpio_output_pin_schema,
-        cv.Optional(CONF_NFAULT_PIN): cv.gpio_input_pin_schema,
-        cv.Optional(CONF_DIRECTION_PIN): cv.gpio_output_pin_schema,
+
+        cv.Required(CONF_NSLEEP_PIN): pins.gpio_output_pin_schema,
+        cv.Optional(CONF_NFAULT_PIN): pins.gpio_input_pin_schema,
+        cv.Optional(CONF_DIRECTION_PIN): pins.gpio_output_pin_schema,
         cv.Optional(CONF_DIRECTION_HIGH, default=True): cv.boolean,
-        cv.Optional(CONF_MIN_LEVEL, default=0.014): cv.percentage,  # 0.0–1.0 or "5%"
+
+        cv.Optional(CONF_MIN_LEVEL, default=0.014): cv.percentage,
         cv.Optional(CONF_EXPONENT, default=1.8): cv.float_range(min=0.1, max=5.0),
     }
 ).extend(cv.COMPONENT_SCHEMA)
