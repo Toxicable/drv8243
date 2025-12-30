@@ -53,49 +53,49 @@ void DRV8243Output::dump_config() {
 }
 
 void DRV8243Output::setup() {
-  ESP_LOGD(TAG, "Setting up DRV8243 output (setup)");
+//   ESP_LOGD(TAG, "Setting up DRV8243 output (setup)");
 
-  // Configure pins
-  if (nsleep_pin_ != nullptr) {
-    nsleep_pin_->setup();
-    nsleep_pin_->pin_mode(gpio::FLAG_OUTPUT);
-    // We'll drive it explicitly during handshake
-    ESP_LOGD(TAG, "nSLEEP configured as output");
-  } else {
-    ESP_LOGW(TAG, "nSLEEP pin not configured! Driver wake/ACK cannot run.");
-  }
+//   // Configure pins
+//   if (nsleep_pin_ != nullptr) {
+//     nsleep_pin_->setup();
+//     nsleep_pin_->pin_mode(gpio::FLAG_OUTPUT);
+//     // We'll drive it explicitly during handshake
+//     ESP_LOGD(TAG, "nSLEEP configured as output");
+//   } else {
+//     ESP_LOGW(TAG, "nSLEEP pin not configured! Driver wake/ACK cannot run.");
+//   }
 
-  if (nfault_pin_ != nullptr) {
-    nfault_pin_->setup();
-    nfault_pin_->pin_mode(gpio::FLAG_INPUT | gpio::FLAG_PULLUP);
-    ESP_LOGD(TAG, "nFAULT configured as input with pull-up");
-  } else {
-    ESP_LOGW(TAG, "nFAULT pin not configured; handshake will be timing-based (less reliable).");
-  }
+//   if (nfault_pin_ != nullptr) {
+//     nfault_pin_->setup();
+//     nfault_pin_->pin_mode(gpio::FLAG_INPUT | gpio::FLAG_PULLUP);
+//     ESP_LOGD(TAG, "nFAULT configured as input with pull-up");
+//   } else {
+//     ESP_LOGW(TAG, "nFAULT pin not configured; handshake will be timing-based (less reliable).");
+//   }
 
-  if (direction_pin_ != nullptr) {
-    direction_pin_->setup();
-    direction_pin_->pin_mode(gpio::FLAG_OUTPUT);
-    direction_pin_->digital_write(direction_high_);
-    ESP_LOGD(TAG, "PH/direction pin set to %s", direction_high_ ? "HIGH" : "LOW");
-  }
+//   if (direction_pin_ != nullptr) {
+//     direction_pin_->setup();
+//     direction_pin_->pin_mode(gpio::FLAG_OUTPUT);
+//     direction_pin_->digital_write(direction_high_);
+//     ESP_LOGD(TAG, "PH/direction pin set to %s", direction_high_ ? "HIGH" : "LOW");
+//   }
 
-  // Ensure bridge is off before messing with nSLEEP
-  if (raw_output_ != nullptr) {
-    ESP_LOGD(TAG, "setup: forcing raw_output to 0.0 before handshake");
-    raw_output_->set_level(0.0f);
-  } else {
-    ESP_LOGW(TAG, "setup: raw_output not set yet");
-  }
+//   // Ensure bridge is off before messing with nSLEEP
+//   if (raw_output_ != nullptr) {
+//     ESP_LOGD(TAG, "setup: forcing raw_output to 0.0 before handshake");
+//     raw_output_->set_level(0.0f);
+//   } else {
+//     ESP_LOGW(TAG, "setup: raw_output not set yet");
+//   }
 
-  ESP_LOGI(TAG, "setup: running DRV8243 wake/ACK handshake");
-//   handshake_ok_ = this->do_handshake_();
-  handshaked_ = true;
+//   ESP_LOGI(TAG, "setup: running DRV8243 wake/ACK handshake");
+// //   handshake_ok_ = this->do_handshake_();
+//   handshaked_ = true;
 
-  ESP_LOGI(TAG, "setup: handshake complete. ok=%s saw_ready_low=%s saw_high_after_ack=%s",
-           handshake_ok_ ? "true" : "false",
-           saw_nfault_low_ ? "true" : "false",
-           saw_nfault_high_after_ack_ ? "true" : "false");
+//   ESP_LOGI(TAG, "setup: handshake complete. ok=%s saw_ready_low=%s saw_high_after_ack=%s",
+//            handshake_ok_ ? "true" : "false",
+//            saw_nfault_low_ ? "true" : "false",
+//            saw_nfault_high_after_ack_ ? "true" : "false");
 }
 
 void DRV8243Output::pulse_nsleep_ack_() {
