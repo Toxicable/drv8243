@@ -89,7 +89,7 @@ void DRV8243Output::setup() {
   }
 
   ESP_LOGI(TAG, "setup: running DRV8243 wake/ACK handshake");
-  handshake_ok_ = this->do_handshake_();
+//   handshake_ok_ = this->do_handshake_();
   handshaked_ = true;
 
   ESP_LOGI(TAG, "setup: handshake complete. ok=%s saw_ready_low=%s saw_high_after_ack=%s",
