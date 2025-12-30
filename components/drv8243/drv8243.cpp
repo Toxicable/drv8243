@@ -220,31 +220,31 @@ bool DRV8243Output::do_handshake_(const char *reason) {
 }
 
 void DRV8243Output::write_state(float state) {
-//   if (raw_output_ == nullptr) {
-//     ESP_LOGE(TAG, "write_state: raw_output is null");
-//     return;
-//   }
+  if (raw_output_ == nullptr) {
+    ESP_LOGE(TAG, "write_state: raw_output is null");
+    return;
+  }
 
-//   ESP_LOGD(TAG, "write_state: requested=%.3f handshaked=%s ok=%s",
-//            state,
-//            handshaked_ ? "true" : "false",
-//            handshake_ok_ ? "true" : "false");
+  ESP_LOGD(TAG, "write_state: requested=%.3f handshaked=%s ok=%s",
+           state,
+           handshaked_ ? "true" : "false",
+           handshake_ok_ ? "true" : "false");
 
-//   // If the deferred handshake hasn't run yet, do a synchronous one on first use
-//   // so the first brightness change is deterministic.
-//   if (!handshaked_ && nsleep_pin_ != nullptr) {
-//     ESP_LOGW(TAG, "write_state: handshake not run yet (deferred). Running now (sync).");
-//     raw_output_->set_level(0.0f);
-//     handshake_ok_ = do_handshake_("first_write_state_sync");
-//     handshaked_ = true;
-//     ESP_LOGI(TAG, "write_state: sync handshake done ok=%s", handshake_ok_ ? "true" : "false");
-//   }
+  // If the deferred handshake hasn't run yet, do a synchronous one on first use
+  // so the first brightness change is deterministic.
+  if (!handshaked_ && nsleep_pin_ != nullptr) {
+    ESP_LOGW(TAG, "write_state: handshake not run yet (deferred). Running now (sync).");
+    raw_output_->set_level(0.0f);
+    handshake_ok_ = do_handshake_("first_write_state_sync");
+    handshaked_ = true;
+    ESP_LOGI(TAG, "write_state: sync handshake done ok=%s", handshake_ok_ ? "true" : "false");
+  }
 
-//   if (state <= 0.0005f) {
-//     ESP_LOGD(TAG, "write_state: OFF");
-//     raw_output_->set_level(0.0f);
-//     return;
-//   }
+  if (state <= 0.0005f) {
+    ESP_LOGD(TAG, "write_state: OFF");
+    raw_output_->set_level(0.0f);
+    return;
+  }
 
   float x = state;
   if (x < 0.0f) x = 0.0f;
