@@ -7,8 +7,6 @@ namespace drv8243 {
 
 static const char *const TAG = "drv8243";
 
-bool DRV8243Output::global_initialized_ = false;
-
 void DRV8243Output::dump_config() {
   ESP_LOGCONFIG(TAG, "DRV8243 Output");
   ESP_LOGCONFIG(TAG, "  Min level: %.4f", this->min_level_);
@@ -34,16 +32,9 @@ void DRV8243Output::dump_config() {
     ESP_LOGCONFIG(TAG, "  Direction (PH) pin: NOT SET");
   }
 
-  ESP_LOGCONFIG(TAG, "  Handshake done: %s",
-                handshake_done_ ? "YES" : "NO");
-
-  // If no handshake yet, run it *now* where we can see all logs.
-  if (!global_initialized_) {
-    ESP_LOGW(TAG, "Handshake has not run yet; running from dump_config()");
-    this->do_handshake_();
-  } else {
-    ESP_LOGCONFIG(TAG, "Handshake already run earlier (global_initialized_=true)");
-  }
+  // Always run handshake *once per boot-log* so we can see it.
+  ESP_LOGW(TAG, "Running DRV8243 wake/ACK handshake from dump_config()");
+  this->do_handshake_();
 }
 
 void DRV8243Output::setup() {
@@ -74,16 +65,9 @@ void DRV8243Output::setup() {
     ESP_LOGD(TAG, "PH/direction pin set to %s",
              direction_high_ ? "HIGH" : "LOW");
   }
-
-  // Do NOT call do_handshake_() here; we want it when logger is fully alive.
 }
 
 void DRV8243Output::do_handshake_() {
-  if (handshake_done_) {
-    ESP_LOGD(TAG, "Handshake already marked done; skipping");
-    return;
-  }
-
   if (nsleep_pin_ == nullptr) {
     ESP_LOGW(TAG, "Cannot run handshake: nSLEEP pin not set");
     return;
@@ -91,7 +75,7 @@ void DRV8243Output::do_handshake_() {
 
   ESP_LOGD(TAG, "=== DRV8243 wake/ACK handshake start ===");
 
-  // 1) Ensure SLEEP: nSLEEP LOW, hold 50ms
+  // 1) Ensure SLEEP: nSLEEP LOW, hold 50 ms
   ESP_LOGD(TAG, "Handshake: forcing SLEEP (nSLEEP LOW) for 50ms");
   nsleep_pin_->digital_write(false);
   delay(50);
@@ -127,10 +111,6 @@ void DRV8243Output::do_handshake_() {
   nsleep_pin_->digital_write(true);
   ESP_LOGD(TAG, "Handshake: ACK pulse complete; nSLEEP held HIGH");
 
-  handshake_done_     = true;
-  global_initialized_ = true;
-
-  ESP_LOGD(TAG, "Handshake: done (handshake_done_=true, global_initialized_=true)");
   ESP_LOGD(TAG, "=== DRV8243 wake/ACK handshake end ===");
 }
 

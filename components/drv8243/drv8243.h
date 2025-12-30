@@ -24,7 +24,7 @@ class DRV8243Output : public Component, public output::FloatOutput {
   void write_state(float state) override;
 
  protected:
-  void do_handshake_();           // run once, with logs
+  void do_handshake_();  // wake + ACK pulse
 
   GPIOPin *nsleep_pin_{nullptr};
   GPIOPin *nfault_pin_{nullptr};
@@ -34,9 +34,6 @@ class DRV8243Output : public Component, public output::FloatOutput {
   float min_level_{0.014f};
   float exponent_{1.8f};
   bool direction_high_{true};
-
-  bool handshake_done_{false};
-  static bool global_initialized_;
 };
 
 }  // namespace drv8243
