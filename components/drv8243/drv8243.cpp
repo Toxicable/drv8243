@@ -1,5 +1,6 @@
 #include "drv8243.h"
 #include "esphome/core/log.h"
+#include "esphome/core/helpers.h" 
 
 #ifdef USE_ESP_IDF
 #include "esp_rom_sys.h"
