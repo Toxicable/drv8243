@@ -1,6 +1,6 @@
 #include "drv8243.h"
 #include "esphome/core/log.h"
-#include "esphome/core/hal.h"   // <- add this
+#include "esphome/core/hal.h" 
 
 #ifdef USE_ESP_IDF
 #include "esp_rom_sys.h"
@@ -11,15 +11,6 @@ namespace drv8243 {
 
 bool DRV8243Output::global_initialized_ = false;
 
-// Small helper macro so we can build on both Arduino and ESP-IDF
-static inline void drv_delay_ms(uint32_t ms) {
-  #ifdef USE_ESP_IDF
-    // Busy-wait; fine for one-time startup
-    esp_rom_delay_us(ms * 1000);
-  #else
-    delay(ms);
-  #endif
-}
 
 void DRV8243Output::setup() {
   if (nsleep_pin_ != nullptr) {
@@ -44,12 +35,12 @@ void DRV8243Output::setup() {
     return;
 
   // Let supply rails settle
-  drv_delay_ms(300);
+  delay(300);
 
   // 1) Force SLEEP, then wake
   if (nsleep_pin_ != nullptr) {
     nsleep_pin_->digital_write(false);
-    drv_delay_ms(100);
+    delay(100);
     nsleep_pin_->digital_write(true);
   }
 
@@ -61,7 +52,7 @@ void DRV8243Output::setup() {
         ready = true;
         break;
       }
-      drv_delay_ms(1);  // 1 ms step
+      delay(1);  // 1 ms step
     }
   } else {
     // No nFAULT pin provided – assume ready
