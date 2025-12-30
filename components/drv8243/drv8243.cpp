@@ -107,7 +107,7 @@ void DRV8243Output::do_handshake_() {
   // 4) ACK pulse: nSLEEP LOW for ~10 µs (<40 µs), then HIGH
   ESP_LOGD(TAG, "Handshake: issuing ACK pulse on nSLEEP (~10us LOW)");
   nsleep_pin_->digital_write(false);
-  delayMicroseconds(10);
+  delayMicroseconds(15);
   nsleep_pin_->digital_write(true);
   ESP_LOGD(TAG, "Handshake: ACK pulse complete; nSLEEP held HIGH");
 
