@@ -1,6 +1,6 @@
 #include "drv8243.h"
 #include "esphome/core/log.h"
-#include "esphome/core/hal.h" 
+#include "esphome/core/hal.h"  // for delayMicroseconds()
 
 #ifdef USE_ESP_IDF
 #include "esp_rom_sys.h"
@@ -11,8 +11,18 @@ namespace drv8243 {
 
 bool DRV8243Output::global_initialized_ = false;
 
+// Simple ms delay helper – only used once at boot
+static inline void drv_delay_ms(uint32_t ms) {
+#ifdef USE_ESP_IDF
+  // Busy-wait; fine for one-time startup
+  esp_rom_delay_us(ms * 1000);
+#else
+  delay(ms);
+#endif
+}
 
 void DRV8243Output::setup() {
+  // Configure pins
   if (nsleep_pin_ != nullptr) {
     nsleep_pin_->setup();
     nsleep_pin_->pin_mode(gpio::FLAG_OUTPUT);
@@ -34,39 +44,36 @@ void DRV8243Output::setup() {
   if (global_initialized_)
     return;
 
-  // Let supply rails settle
-  delay(300);
+  // ---- HANDSHAKE: mirror your working lambda ----
 
-  // 1) Force SLEEP, then wake
+  // 1) Force SLEEP (already low), hold ~50 ms
+  drv_delay_ms(50);
+
+  // 2) Wake: nSLEEP HIGH
   if (nsleep_pin_ != nullptr) {
-    nsleep_pin_->digital_write(false);
-    delay(100);
     nsleep_pin_->digital_write(true);
   }
 
-  // 2) Wait for nFAULT LOW (device ready) up to ~1500 ms
+  // 3) Wait up to 200 ms for nFAULT LOW (device ready)
   bool ready = false;
   if (nfault_pin_ != nullptr) {
-    for (int i = 0; i < 1500; i++) {
+    for (int i = 0; i < 200; i++) {     // 200 x 1 ms = 200 ms
       if (!nfault_pin_->digital_read()) {
         ready = true;
         break;
       }
-      delay(1);  // 1 ms step
+      drv_delay_ms(1);
     }
   } else {
-    // No nFAULT pin provided – assume ready
+    // No nFAULT pin wired in – assume ready
     ready = true;
   }
 
-  // 3) ACK pulse: nSLEEP LOW for ~15 µs (<40 µs), then HIGH
-  if (ready && nsleep_pin_ != nullptr) {
+  // 4) ACK pulse: nSLEEP LOW for ~10 µs (<40 µs), then HIGH.
+  // Do it even if we didn't see nFAULT low, like your original code.
+  if (nsleep_pin_ != nullptr) {
     nsleep_pin_->digital_write(false);
-    #ifdef USE_ESP_IDF
-      esp_rom_delay_us(15);
-    #else
-      delayMicroseconds(15);
-    #endif
+    esphome::delayMicroseconds(10);
     nsleep_pin_->digital_write(true);
   }
 
@@ -89,10 +96,10 @@ void DRV8243Output::write_state(float state) {
 
   float y;
   if (exponent_ <= 0.0f) {
-    // Linear clamp
+    // Linear clamp only
     y = min_level_ + (1.0f - min_level_) * x;
   } else {
-    // Shaped curve
+    // Perceptual shaping
     y = min_level_ + (1.0f - min_level_) * powf(x, exponent_);
   }
 
