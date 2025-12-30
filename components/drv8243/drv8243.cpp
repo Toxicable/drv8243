@@ -230,16 +230,16 @@ void DRV8243Output::write_state(float state) {
            state, handshaked_ ? "true" : "false", handshake_ok_ ? "true" : "false");
 
   // If something tries to drive before handshake ran (or if it failed), attempt one retry.
-  if (!handshaked_ || !handshake_ok_) {
-    ESP_LOGW(TAG, "write_state: handshake not done/ok; forcing output OFF and retrying handshake once");
-    raw_output_->set_level(0.0f);
+//   if (!handshaked_ || !handshake_ok_) {
+//     ESP_LOGW(TAG, "write_state: handshake not done/ok; forcing output OFF and retrying handshake once");
+//     raw_output_->set_level(0.0f);
 
-    bool ok = this->do_handshake_();
-    handshaked_ = true;
-    handshake_ok_ = ok;
+//     // bool ok = this->do_handshake_();
+//     handshaked_ = true;
+//     handshake_ok_ = ok;
 
-    ESP_LOGI(TAG, "write_state: handshake retry complete. ok=%s", ok ? "true" : "false");
-  }
+//     ESP_LOGI(TAG, "write_state: handshake retry complete. ok=%s", ok ? "true" : "false");
+//   }
 
   if (state <= 0.0005f) {
     ESP_LOGD(TAG, "write_state: OFF (<= 0.0005)");
