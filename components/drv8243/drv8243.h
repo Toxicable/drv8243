@@ -1,6 +1,8 @@
 #pragma once
 
-#include "esphome.h"
+#include "esphome/core/component.h"
+#include "esphome/components/output/float_output.h"
+#include "esphome/core/gpio.h"
 
 namespace esphome {
 namespace drv8243 {
@@ -26,8 +28,8 @@ class DRV8243Output : public Component, public output::FloatOutput {
   GPIOPin *direction_pin_{nullptr};
   output::FloatOutput *raw_output_{nullptr};
 
-  float min_level_{0.014f};
-  float exponent_{1.8f};
+  float min_level_{0.014f};  // 0..1 PWM floor
+  float exponent_{1.8f};     // brightness curve
   bool direction_high_{true};
 
   static bool global_initialized_;
