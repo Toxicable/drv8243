@@ -220,15 +220,15 @@ bool DRV8243Output::do_handshake_(const char *reason) {
 }
 
 void DRV8243Output::write_state(float state) {
-//   if (raw_output_ == nullptr) {
-//     ESP_LOGE(TAG, "write_state: raw_output is null");
-//     return;
-//   }
+  if (raw_output_ == nullptr) {
+    ESP_LOGE(TAG, "write_state: raw_output is null");
+    return;
+  }
 
-//   ESP_LOGD(TAG, "write_state: requested=%.3f handshaked=%s ok=%s",
-//            state,
-//            handshaked_ ? "true" : "false",
-//            handshake_ok_ ? "true" : "false");
+  ESP_LOGD(TAG, "write_state: requested=%.3f handshaked=%s ok=%s",
+           state,
+           handshaked_ ? "true" : "false",
+           handshake_ok_ ? "true" : "false");
 
 //   // If the deferred handshake hasn't run yet, do a synchronous one on first use
 //   // so the first brightness change is deterministic.
