@@ -6,6 +6,8 @@ from esphome.const import CONF_ID
 CONF_RAW_OUTPUT = "raw_output"
 CONF_NSLEEP_PIN = "nsleep_pin"
 CONF_NFAULT_PIN = "nfault_pin"
+CONF_DIRECTION_PIN = "direction_pin"
+CONF_DIRECTION_HIGH = "direction_high"
 CONF_MIN_LEVEL = "min_level"
 CONF_EXPONENT = "exponent"
 
@@ -18,6 +20,8 @@ CONFIG_SCHEMA = output.FLOAT_OUTPUT_SCHEMA.extend(
         cv.Required(CONF_RAW_OUTPUT): cv.use_id(output.FloatOutput),
         cv.Required(CONF_NSLEEP_PIN): cv.gpio_output_pin_schema,
         cv.Optional(CONF_NFAULT_PIN): cv.gpio_input_pin_schema,
+        cv.Optional(CONF_DIRECTION_PIN): cv.gpio_output_pin_schema,
+        cv.Optional(CONF_DIRECTION_HIGH, default=True): cv.boolean,
         cv.Optional(CONF_MIN_LEVEL, default=0.014): cv.percentage,  # 0.0–1.0 or "5%"
         cv.Optional(CONF_EXPONENT, default=1.8): cv.float_range(min=0.1, max=5.0),
     }
@@ -38,6 +42,11 @@ async def to_code(config):
     if CONF_NFAULT_PIN in config:
         nfault = await cg.gpio_pin_expression(config[CONF_NFAULT_PIN])
         cg.add(var.set_nfault_pin(nfault))
+
+    if CONF_DIRECTION_PIN in config:
+        direction = await cg.gpio_pin_expression(config[CONF_DIRECTION_PIN])
+        cg.add(var.set_direction_pin(direction))
+        cg.add(var.set_direction_high(config[CONF_DIRECTION_HIGH]))
 
     cg.add(var.set_min_level(config[CONF_MIN_LEVEL]))
     cg.add(var.set_exponent(config[CONF_EXPONENT]))

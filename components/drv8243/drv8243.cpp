@@ -1,16 +1,16 @@
-#include "drv8243.h"
+#include "drv8243_smart.h"
 
 #ifdef USE_ESP_IDF
 #include "esp_rom_sys.h"
 #endif
 
 namespace esphome {
-namespace drv8243 {
+namespace drv8243_smart {
 
 bool DRV8243Output::global_initialized_ = false;
 
 void DRV8243Output::setup() {
-  // Configure pins if provided
+  // Configure pins
   if (nsleep_pin_ != nullptr) {
     nsleep_pin_->setup();
     nsleep_pin_->pin_mode(gpio::FLAG_OUTPUT);
@@ -20,6 +20,13 @@ void DRV8243Output::setup() {
   if (nfault_pin_ != nullptr) {
     nfault_pin_->setup();
     nfault_pin_->pin_mode(gpio::FLAG_INPUT | gpio::FLAG_PULLUP);
+  }
+
+  if (direction_pin_ != nullptr) {
+    direction_pin_->setup();
+    direction_pin_->pin_mode(gpio::FLAG_OUTPUT);
+    // Set desired polarity once at startup
+    direction_pin_->digital_write(direction_high_);
   }
 
   // Only first instance performs the full handshake
