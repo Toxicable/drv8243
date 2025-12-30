@@ -21,35 +21,35 @@ static constexpr uint32_t ACK_PULSE_US = 30;            // ACK pulse target (aim
 
 void DRV8243Output::dump_config() {
   ESP_LOGCONFIG(TAG, "DRV8243 Output Config");
-//   ESP_LOGCONFIG(TAG, "  Min level: %.4f", this->min_level_);
-//   ESP_LOGCONFIG(TAG, "  Exponent: %.2f", this->exponent_);
+  ESP_LOGCONFIG(TAG, "  Min level: %.4f", this->min_level_);
+  ESP_LOGCONFIG(TAG, "  Exponent: %.2f", this->exponent_);
 
-//   if (nsleep_pin_ != nullptr) {
-//     ESP_LOGCONFIG(TAG, "  nSLEEP pin: %s", nsleep_pin_->dump_summary().c_str());
-//   } else {
-//     ESP_LOGCONFIG(TAG, "  nSLEEP pin: NOT SET");
-//   }
+  if (nsleep_pin_ != nullptr) {
+    ESP_LOGCONFIG(TAG, "  nSLEEP pin: %s", nsleep_pin_->dump_summary().c_str());
+  } else {
+    ESP_LOGCONFIG(TAG, "  nSLEEP pin: NOT SET");
+  }
 
-//   if (nfault_pin_ != nullptr) {
-//     ESP_LOGCONFIG(TAG, "  nFAULT pin: %s", nfault_pin_->dump_summary().c_str());
-//   } else {
-//     ESP_LOGCONFIG(TAG, "  nFAULT pin: NOT SET");
-//   }
+  if (nfault_pin_ != nullptr) {
+    ESP_LOGCONFIG(TAG, "  nFAULT pin: %s", nfault_pin_->dump_summary().c_str());
+  } else {
+    ESP_LOGCONFIG(TAG, "  nFAULT pin: NOT SET");
+  }
 
-//   if (direction_pin_ != nullptr) {
-//     ESP_LOGCONFIG(TAG, "  Direction (PH) pin: %s (initial=%s)",
-//                   direction_pin_->dump_summary().c_str(),
-//                   direction_high_ ? "HIGH" : "LOW");
-//   } else {
-//     ESP_LOGCONFIG(TAG, "  Direction (PH) pin: NOT SET");
-//   }
+  if (direction_pin_ != nullptr) {
+    ESP_LOGCONFIG(TAG, "  Direction (PH) pin: %s (initial=%s)",
+                  direction_pin_->dump_summary().c_str(),
+                  direction_high_ ? "HIGH" : "LOW");
+  } else {
+    ESP_LOGCONFIG(TAG, "  Direction (PH) pin: NOT SET");
+  }
 
-//   ESP_LOGCONFIG(TAG, "  Handshake done: %s", handshaked_ ? "YES" : "NO");
-//   ESP_LOGCONFIG(TAG, "  Handshake ok:   %s", handshake_ok_ ? "YES" : "NO");
-//   ESP_LOGCONFIG(TAG, "    Saw nFAULT LOW (ready): %s", saw_nfault_low_ ? "YES" : "NO");
-//   ESP_LOGCONFIG(TAG, "    Saw nFAULT HIGH after ACK: %s", saw_nfault_high_after_ack_ ? "YES" : "NO");
-//   ESP_LOGCONFIG(TAG, "    Wait LOW time:  %u us", (unsigned) t_wait_low_us_);
-//   ESP_LOGCONFIG(TAG, "    Wait HIGH time: %u us", (unsigned) t_wait_high_us_);
+  ESP_LOGCONFIG(TAG, "  Handshake done: %s", handshaked_ ? "YES" : "NO");
+  ESP_LOGCONFIG(TAG, "  Handshake ok:   %s", handshake_ok_ ? "YES" : "NO");
+  ESP_LOGCONFIG(TAG, "    Saw nFAULT LOW (ready): %s", saw_nfault_low_ ? "YES" : "NO");
+  ESP_LOGCONFIG(TAG, "    Saw nFAULT HIGH after ACK: %s", saw_nfault_high_after_ack_ ? "YES" : "NO");
+  ESP_LOGCONFIG(TAG, "    Wait LOW time:  %u us", (unsigned) t_wait_low_us_);
+  ESP_LOGCONFIG(TAG, "    Wait HIGH time: %u us", (unsigned) t_wait_high_us_);
 }
 
 void DRV8243Output::setup() {
