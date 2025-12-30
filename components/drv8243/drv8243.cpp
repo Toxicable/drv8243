@@ -47,7 +47,7 @@ void DRV8243Output::setup() {
   // ---- HANDSHAKE: mirror your working lambda ----
 
   // 1) Force SLEEP (already low), hold ~50 ms
-  drv_delay_ms(5000);
+  drv_delay_ms(300);
 
   // 2) Wake: nSLEEP HIGH
   if (nsleep_pin_ != nullptr) {
