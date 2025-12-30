@@ -111,9 +111,9 @@ void DRV8243Output::do_handshake_() {
   nsleep_pin_->digital_write(true);
   ESP_LOGD(TAG, "Handshake: ACK pulse complete; nSLEEP held HIGH");
 
-//   delay(20);
-//   bool faultState = nfault_pin_->digital_read();
-//   ESP_LOGD(TAG, "FAULT = %s", faultState ? 'HIGH' : 'LOW');
+  delay(20);
+  bool faultState = nfault_pin_->digital_read();
+  ESP_LOGD(TAG, "FAULT = %s", faultState ? "HIGH" : "LOW");
 
   ESP_LOGD(TAG, "=== DRV8243 wake/ACK handshake end ===");
 }
