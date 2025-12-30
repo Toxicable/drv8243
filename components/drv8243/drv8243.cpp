@@ -61,17 +61,17 @@ void DRV8243Output::dump_config() {
 void DRV8243Output::setup() {
   ESP_LOGI(TAG, "setup: begin");
 
-//   pin setup only — no sleeps, no pulses
-  if (nsleep_pin_) { nsleep_pin_->setup(); nsleep_pin_->pin_mode(gpio::FLAG_OUTPUT); nsleep_pin_->digital_write(true); }
-  if (nfault_pin_) { nfault_pin_->setup(); nfault_pin_->pin_mode(gpio::FLAG_INPUT | gpio::FLAG_PULLUP); }
-  if (direction_pin_) { direction_pin_->setup(); direction_pin_->pin_mode(gpio::FLAG_OUTPUT); direction_pin_->digital_write(direction_high_); }
+// //   pin setup only — no sleeps, no pulses
+//   if (nsleep_pin_) { nsleep_pin_->setup(); nsleep_pin_->pin_mode(gpio::FLAG_OUTPUT); nsleep_pin_->digital_write(true); }
+//   if (nfault_pin_) { nfault_pin_->setup(); nfault_pin_->pin_mode(gpio::FLAG_INPUT | gpio::FLAG_PULLUP); }
+//   if (direction_pin_) { direction_pin_->setup(); direction_pin_->pin_mode(gpio::FLAG_OUTPUT); direction_pin_->digital_write(direction_high_); }
 
-  ESP_LOGI(TAG, "setup: pins configured, deferring handshake 3s");
-  this->set_timeout("drv8243_hs", 3000, [this]() {
-    ESP_LOGI(TAG, "handshake: starting (deferred)");
-    this->do_handshake_("deferred");
-    ESP_LOGI(TAG, "handshake: done");
-  });
+//   ESP_LOGI(TAG, "setup: pins configured, deferring handshake 3s");
+//   this->set_timeout("drv8243_hs", 3000, [this]() {
+//     ESP_LOGI(TAG, "handshake: starting (deferred)");
+//     this->do_handshake_("deferred");
+//     ESP_LOGI(TAG, "handshake: done");
+//   });
 
   ESP_LOGI(TAG, "setup: end");
 }
