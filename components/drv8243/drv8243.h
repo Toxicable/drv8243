@@ -25,7 +25,8 @@ class DRV8243Output : public Component, public output::FloatOutput {
   void write_state(float state) override;
 
  protected:
-  bool do_handshake_();           // wake + ACK pulse
+ void run_handshake(const char *reason = "yaml");
+  bool do_handshake_(const char *reason);  // wake + ACK pulse; returns "observed-good" if nfault exists
   void pulse_nsleep_ack_();       // ~30us low pulse (jitter-minimized)
   void run_handshake(const char *reason = "yaml");
   const char *bool_str_(bool v) { return v ? "true" : "false"; }
