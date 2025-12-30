@@ -37,18 +37,19 @@ void DRV8243Output::dump_config() {
   ESP_LOGCONFIG(TAG, "  Handshake done: %s",
                 handshake_done_ ? "YES" : "NO");
 
-  // Safety net: if for some reason setup() ran before logger and we
-  // couldn't see it, run handshake once here if it hasn't been done.
-  if (!handshake_done_) {
-    ESP_LOGW(TAG, "Handshake not yet done at dump_config(); running now");
+  // If no handshake yet, run it *now* where we can see all logs.
+  if (!global_initialized_) {
+    ESP_LOGW(TAG, "Handshake has not run yet; running from dump_config()");
     this->do_handshake_();
+  } else {
+    ESP_LOGCONFIG(TAG, "Handshake already run earlier (global_initialized_=true)");
   }
 }
 
 void DRV8243Output::setup() {
   ESP_LOGD(TAG, "Setting up DRV8243 output (setup)");
 
-  // Configure pins
+  // Configure pins only – no handshake here.
   if (nsleep_pin_ != nullptr) {
     nsleep_pin_->setup();
     nsleep_pin_->pin_mode(gpio::FLAG_OUTPUT);
@@ -74,19 +75,12 @@ void DRV8243Output::setup() {
              direction_high_ ? "HIGH" : "LOW");
   }
 
-  // Only first instance actually needs the handshake, but we track a per-instance flag too.
-  if (global_initialized_) {
-    ESP_LOGD(TAG, "DRV8243 already globally initialized; skipping handshake");
-    handshake_done_ = true;
-    return;
-  }
-
-  this->do_handshake_();
+  // Do NOT call do_handshake_() here; we want it when logger is fully alive.
 }
 
 void DRV8243Output::do_handshake_() {
   if (handshake_done_) {
-    ESP_LOGD(TAG, "Handshake already done; skipping");
+    ESP_LOGD(TAG, "Handshake already marked done; skipping");
     return;
   }
 
@@ -95,10 +89,11 @@ void DRV8243Output::do_handshake_() {
     return;
   }
 
-  // ---- HANDSHAKE: mirror your known-good lambda ----
+  ESP_LOGD(TAG, "=== DRV8243 wake/ACK handshake start ===");
 
-  // 1) Force SLEEP for 50 ms (nSLEEP already LOW)
-  ESP_LOGD(TAG, "Handshake: forcing SLEEP for 50ms");
+  // 1) Ensure SLEEP: nSLEEP LOW, hold 50ms
+  ESP_LOGD(TAG, "Handshake: forcing SLEEP (nSLEEP LOW) for 50ms");
+  nsleep_pin_->digital_write(false);
   delay(50);
 
   // 2) Wake: nSLEEP HIGH
@@ -109,7 +104,7 @@ void DRV8243Output::do_handshake_() {
   bool ready = false;
   if (nfault_pin_ != nullptr) {
     ESP_LOGD(TAG, "Handshake: waiting up to 200ms for nFAULT LOW (ready)");
-    for (int i = 0; i < 200; i++) {  // 200 x 1ms
+    for (int i = 0; i < 200; i++) {
       bool fault_level = nfault_pin_->digital_read();
       if (!fault_level) {
         ESP_LOGD(TAG, "Handshake: nFAULT went LOW after %d ms – device ready", i);
@@ -132,9 +127,11 @@ void DRV8243Output::do_handshake_() {
   nsleep_pin_->digital_write(true);
   ESP_LOGD(TAG, "Handshake: ACK pulse complete; nSLEEP held HIGH");
 
-  handshake_done_ = true;
+  handshake_done_     = true;
   global_initialized_ = true;
+
   ESP_LOGD(TAG, "Handshake: done (handshake_done_=true, global_initialized_=true)");
+  ESP_LOGD(TAG, "=== DRV8243 wake/ACK handshake end ===");
 }
 
 void DRV8243Output::write_state(float state) {
