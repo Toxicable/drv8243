@@ -1,9 +1,5 @@
 #include "drv8243.h"
 #include "esphome/core/log.h"
-#include "esphome/core/helpers.h"
-
-using esphome::delay;
-using esphome::millis;
 
 #ifdef USE_ESP_IDF
 #include "esp_rom_sys.h"
@@ -13,6 +9,16 @@ namespace esphome {
 namespace drv8243 {
 
 bool DRV8243Output::global_initialized_ = false;
+
+// Small helper macro so we can build on both Arduino and ESP-IDF
+static inline void drv_delay_ms(uint32_t ms) {
+  #ifdef USE_ESP_IDF
+    // Busy-wait; fine for one-time startup
+    esp_rom_delay_us(ms * 1000);
+  #else
+    delay(ms);
+  #endif
+}
 
 void DRV8243Output::setup() {
   if (nsleep_pin_ != nullptr) {
@@ -32,31 +38,32 @@ void DRV8243Output::setup() {
     direction_pin_->digital_write(direction_high_);
   }
 
+  // Only first instance does the handshake
   if (global_initialized_)
     return;
 
-  // Let rails settle
-  delay(300);
+  // Let supply rails settle
+  drv_delay_ms(300);
 
   // 1) Force SLEEP, then wake
   if (nsleep_pin_ != nullptr) {
     nsleep_pin_->digital_write(false);
-    delay(100);
+    drv_delay_ms(100);
     nsleep_pin_->digital_write(true);
   }
 
-  // 2) Wait for nFAULT LOW (device ready)
+  // 2) Wait for nFAULT LOW (device ready) up to ~1500 ms
   bool ready = false;
   if (nfault_pin_ != nullptr) {
-    uint32_t start = millis();
-    while (nfault_pin_->digital_read() &&
-           (millis() - start) < 1500) {
-      delay(5);
-    }
-    if (!nfault_pin_->digital_read()) {
-      ready = true;
+    for (int i = 0; i < 1500; i++) {
+      if (!nfault_pin_->digital_read()) {
+        ready = true;
+        break;
+      }
+      drv_delay_ms(1);  // 1 ms step
     }
   } else {
+    // No nFAULT pin provided – assume ready
     ready = true;
   }
 
@@ -78,6 +85,7 @@ void DRV8243Output::write_state(float state) {
   if (raw_output_ == nullptr)
     return;
 
+  // Fully off
   if (state <= 0.0005f) {
     raw_output_->set_level(0.0f);
     return;
@@ -89,8 +97,10 @@ void DRV8243Output::write_state(float state) {
 
   float y;
   if (exponent_ <= 0.0f) {
+    // Linear clamp
     y = min_level_ + (1.0f - min_level_) * x;
   } else {
+    // Shaped curve
     y = min_level_ + (1.0f - min_level_) * powf(x, exponent_);
   }
 
