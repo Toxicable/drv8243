@@ -126,8 +126,10 @@ void DRV8243Output::write_state(float state) {
   if (raw_output_ == nullptr)
     return;
 
-  // Fully off
+  ESP_LOGD(TAG, "write_state: requested=%.3f", state);
+
   if (state <= 0.0005f) {
+    ESP_LOGD(TAG, "write_state: OFF (<= 0.0005)");
     raw_output_->set_level(0.0f);
     return;
   }
@@ -138,16 +140,15 @@ void DRV8243Output::write_state(float state) {
 
   float y;
   if (exponent_ <= 0.0f) {
-    // Linear clamp only
     y = min_level_ + (1.0f - min_level_) * x;
   } else {
-    // Perceptual shaping
     y = min_level_ + (1.0f - min_level_) * powf(x, exponent_);
   }
 
   if (y < 0.0f) y = 0.0f;
   if (y > 1.0f) y = 1.0f;
 
+  ESP_LOGD(TAG, "write_state: mapped to raw_level=%.3f", y);
   raw_output_->set_level(y);
 }
 
