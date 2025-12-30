@@ -107,6 +107,7 @@ void DRV8243Output::pulse_nsleep_ack_() {
 }
 
 bool DRV8243Output::do_handshake_(const char *reason) {
+    return true;
 //   if (handshake_in_progress_) {
 //     ESP_LOGW(TAG, "handshake: already in progress; skipping (reason=%s)", reason);
 //     return handshake_ok_;
