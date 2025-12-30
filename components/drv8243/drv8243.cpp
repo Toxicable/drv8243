@@ -77,51 +77,35 @@ void DRV8243Output::dump_config() {
 void DRV8243Output::setup() {
   ESP_LOGI(TAG, "setup: begin");
 
-  // Configure pins
-  if (nsleep_pin_ != nullptr) {
-    nsleep_pin_->setup();
-    nsleep_pin_->pin_mode(gpio::FLAG_OUTPUT);
-    nsleep_pin_->digital_write(true);  // default awake
-    ESP_LOGI(TAG, "setup: nSLEEP configured output, driven HIGH");
-  } else {
-    ESP_LOGE(TAG, "setup: nSLEEP pin is NOT set -> driver cannot wake/ACK");
-  }
+  // pin setup only — no sleeps, no pulses
+  if (nsleep_pin_) { nsleep_pin_->setup(); nsleep_pin_->pin_mode(gpio::FLAG_OUTPUT); nsleep_pin_->digital_write(true); }
+  if (nfault_pin_) { nfault_pin_->setup(); nfault_pin_->pin_mode(gpio::FLAG_INPUT | gpio::FLAG_PULLUP); }
+  if (direction_pin_) { direction_pin_->setup(); direction_pin_->pin_mode(gpio::FLAG_OUTPUT); direction_pin_->digital_write(direction_high_); }
 
-  if (nfault_pin_ != nullptr) {
-    nfault_pin_->setup();
-    nfault_pin_->pin_mode(gpio::FLAG_INPUT | gpio::FLAG_PULLUP);
-    ESP_LOGI(TAG, "setup: nFAULT configured input with internal pull-up");
-  } else {
-    ESP_LOGW(TAG, "setup: nFAULT not provided; handshake will be best-effort (cannot confirm ACK)");
-  }
-
-  if (direction_pin_ != nullptr) {
-    direction_pin_->setup();
-    direction_pin_->pin_mode(gpio::FLAG_OUTPUT);
-    direction_pin_->digital_write(direction_high_);
-    ESP_LOGI(TAG, "setup: PH/direction configured, initial=%s", direction_high_ ? "HIGH" : "LOW");
-  }
-
-  // Ensure bridge is off
-  if (raw_output_ != nullptr) {
-    ESP_LOGI(TAG, "setup: forcing raw_output OFF (0.0) before handshake");
-    raw_output_->set_level(0.0f);
-  } else {
-    ESP_LOGE(TAG, "setup: raw_output is null (wiring issue?)");
-  }
-
-  // Defer handshake so we always get boot logs first.
-  ESP_LOGI(TAG, "setup: scheduling handshake in %u ms", (unsigned) DEFER_HANDSHAKE_MS);
-  this->set_timeout("drv8243_handshake", DEFER_HANDSHAKE_MS, [this]() {
-    ESP_LOGI(TAG, "handshake: deferred timer fired");
-    this->handshake_ok_ = this->do_handshake_("deferred_setup");
-    this->handshaked_ = true;
-    ESP_LOGI(TAG, "handshake: deferred complete ok=%s attempts=%u",
-             this->handshake_ok_ ? "true" : "false",
-             (unsigned) this->handshake_attempts_);
+  ESP_LOGI(TAG, "setup: pins configured, deferring handshake 3s");
+  this->set_timeout("drv8243_hs", 3000, [this]() {
+    ESP_LOGI(TAG, "handshake: starting (deferred)");
+    this->do_handshake_("deferred");
+    ESP_LOGI(TAG, "handshake: done");
   });
 
-  ESP_LOGI(TAG, "setup: end (handshake deferred)");
+  ESP_LOGI(TAG, "setup: end");
+}
+
+void DRV8243Output::run_handshake(const char *reason) {
+  ESP_LOGW(TAG, "run_handshake(): requested (reason=%s)", reason);
+
+  // (Optional) make sure PWM is off while we do the handshake to avoid flicker
+  if (raw_output_ != nullptr) {
+    ESP_LOGI(TAG, "run_handshake(): forcing raw_output OFF (0.0) before handshake");
+    raw_output_->set_level(0.0f);
+  }
+
+  bool ok = this->do_handshake_(reason);
+  this->handshaked_ = true;
+  this->handshake_ok_ = ok;
+
+  ESP_LOGW(TAG, "run_handshake(): done ok=%s", ok ? "true" : "false");
 }
 
 void DRV8243Output::pulse_nsleep_ack_() {

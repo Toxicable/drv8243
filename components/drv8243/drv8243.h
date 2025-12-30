@@ -1,4 +1,3 @@
-// drv8243.h
 #pragma once
 
 #include "esphome/core/component.h"
@@ -20,16 +19,15 @@ class DRV8243Output : public Component, public output::FloatOutput {
   void set_min_level(float v) { min_level_ = v; }
   void set_exponent(float e) { exponent_ = e; }
 
+  float get_setup_priority() const override;  // run late so logs/wifi are up
   void setup() override;
   void dump_config() override;
   void write_state(float state) override;
 
  protected:
- void run_handshake(const char *reason = "yaml");
-  bool do_handshake_(const char *reason);  // wake + ACK pulse; returns "observed-good" if nfault exists
-  void pulse_nsleep_ack_();       // ~30us low pulse (jitter-minimized)
   void run_handshake(const char *reason = "yaml");
-  const char *bool_str_(bool v) { return v ? "true" : "false"; }
+  bool do_handshake_(const char *reason);  // wake + ACK pulse; returns "observed-good" if nfault exists
+  void pulse_nsleep_ack_();               // ~30us low pulse (jitter-minimized)
 
   GPIOPin *nsleep_pin_{nullptr};
   GPIOPin *nfault_pin_{nullptr};
@@ -40,13 +38,17 @@ class DRV8243Output : public Component, public output::FloatOutput {
   float exponent_{1.8f};
   bool direction_high_{true};
 
-  // Debug / state
+  // Debug/state
   bool handshaked_{false};
   bool handshake_ok_{false};
+  bool handshake_in_progress_{false};
+
   bool saw_nfault_low_{false};
   bool saw_nfault_high_after_ack_{false};
   uint32_t t_wait_low_us_{0};
   uint32_t t_wait_high_us_{0};
+
+  uint32_t handshake_attempts_{0};
 };
 
 }  // namespace drv8243
