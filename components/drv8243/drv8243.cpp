@@ -9,8 +9,34 @@ static const char *const TAG = "drv8243";
 
 bool DRV8243Output::global_initialized_ = false;
 
+void DRV8243Output::dump_config() {
+  ESP_LOGCONFIG(TAG, "DRV8243 Output");
+  ESP_LOGCONFIG(TAG, "  Min level: %.4f", this->min_level_);
+  ESP_LOGCONFIG(TAG, "  Exponent: %.2f", this->exponent_);
+
+  if (nsleep_pin_ != nullptr) {
+    ESP_LOGCONFIG(TAG, "  nSLEEP pin: %s", nsleep_pin_->dump_summary().c_str());
+  } else {
+    ESP_LOGCONFIG(TAG, "  nSLEEP pin: NOT SET");
+  }
+
+  if (nfault_pin_ != nullptr) {
+    ESP_LOGCONFIG(TAG, "  nFAULT pin: %s", nfault_pin_->dump_summary().c_str());
+  } else {
+    ESP_LOGCONFIG(TAG, "  nFAULT pin: NOT SET");
+  }
+
+  if (direction_pin_ != nullptr) {
+    ESP_LOGCONFIG(TAG, "  Direction (PH) pin: %s (initial=%s)",
+                  direction_pin_->dump_summary().c_str(),
+                  direction_high_ ? "HIGH" : "LOW");
+  } else {
+    ESP_LOGCONFIG(TAG, "  Direction (PH) pin: NOT SET");
+  }
+}
+
 void DRV8243Output::setup() {
-  ESP_LOGCONFIG(TAG, "Setting up DRV8243 output");
+  ESP_LOGD(TAG, "Setting up DRV8243 output (setup)");
 
   // Configure pins
   if (nsleep_pin_ != nullptr) {
@@ -34,8 +60,8 @@ void DRV8243Output::setup() {
     direction_pin_->setup();
     direction_pin_->pin_mode(gpio::FLAG_OUTPUT);
     direction_pin_->digital_write(direction_high_);
-    ESP_LOGCONFIG(TAG, "PH/direction pin set to %s",
-                  direction_high_ ? "HIGH" : "LOW");
+    ESP_LOGD(TAG, "PH/direction pin set to %s",
+             direction_high_ ? "HIGH" : "LOW");
   }
 
   // Only first instance does the handshake
@@ -44,21 +70,23 @@ void DRV8243Output::setup() {
     return;
   }
 
-  // ---- HANDSHAKE: mirror your working lambda ----
-  ESP_LOGD(TAG, "Forcing SLEEP for 50ms");
-  delay(50);  // ms
+  // ---- HANDSHAKE: mirror your known-good lambda ----
 
-  // 1) Wake: nSLEEP HIGH
+  // 1) Force SLEEP for 50 ms
+  ESP_LOGD(TAG, "Forcing SLEEP for 50ms");
+  delay(50);
+
+  // 2) Wake: nSLEEP HIGH
   if (nsleep_pin_ != nullptr) {
     ESP_LOGD(TAG, "Driving nSLEEP HIGH to wake DRV8243");
     nsleep_pin_->digital_write(true);
   }
 
-  // 2) Wait up to 200 ms for nFAULT LOW (device ready)
+  // 3) Wait up to 200 ms for nFAULT LOW (device ready)
   bool ready = false;
   if (nfault_pin_ != nullptr) {
-    ESP_LOGD(TAG, "Waiting up to 200ms for nFAULT to assert LOW (ready)");
-    for (int i = 0; i < 200; i++) {  // 200 x 1ms = 200ms
+    ESP_LOGD(TAG, "Waiting up to 200ms for nFAULT LOW (ready)");
+    for (int i = 0; i < 200; i++) {
       bool fault_level = nfault_pin_->digital_read();
       if (!fault_level) {
         ESP_LOGD(TAG, "nFAULT went LOW after %d ms – device ready", i);
@@ -74,8 +102,7 @@ void DRV8243Output::setup() {
     ready = true;
   }
 
-  // 3) ACK pulse: nSLEEP LOW for ~10 µs (<40 µs), then HIGH.
-  // Same behaviour as your working Arduino lambda.
+  // 4) ACK pulse: nSLEEP LOW for ~10 µs (<40 µs), then HIGH
   if (nsleep_pin_ != nullptr) {
     ESP_LOGD(TAG, "Issuing ACK pulse on nSLEEP (~10us LOW)");
     nsleep_pin_->digital_write(false);
@@ -85,7 +112,7 @@ void DRV8243Output::setup() {
   }
 
   global_initialized_ = true;
-  ESP_LOGCONFIG(TAG, "DRV8243 handshake complete");
+  ESP_LOGD(TAG, "DRV8243 handshake complete");
 }
 
 void DRV8243Output::write_state(float state) {

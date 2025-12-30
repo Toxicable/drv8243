@@ -20,6 +20,7 @@ class DRV8243Output : public Component, public output::FloatOutput {
   void set_exponent(float e)  { exponent_ = e; }
 
   void setup() override;
+  void dump_config() override;      // <-- add this
   void write_state(float state) override;
 
  protected:
@@ -28,8 +29,8 @@ class DRV8243Output : public Component, public output::FloatOutput {
   GPIOPin *direction_pin_{nullptr};
   output::FloatOutput *raw_output_{nullptr};
 
-  float min_level_{0.014f};  // 0..1 PWM floor
-  float exponent_{1.8f};     // brightness curve
+  float min_level_{0.014f};
+  float exponent_{1.8f};
   bool direction_high_{true};
 
   static bool global_initialized_;
