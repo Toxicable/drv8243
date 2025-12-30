@@ -12,17 +12,20 @@ CONF_DIRECTION_HIGH = "direction_high"
 CONF_MIN_LEVEL = "min_level"
 CONF_EXPONENT = "exponent"
 
+# C++ namespace matches folder name: components/drv8243
 drv8243_ns = cg.esphome_ns.namespace("drv8243")
 DRV8243Output = drv8243_ns.class_("DRV8243Output", cg.Component, output.FloatOutput)
 
 CONFIG_SCHEMA = output.FLOAT_OUTPUT_SCHEMA.extend(
     {
         cv.GenerateID(): cv.declare_id(DRV8243Output),
+
         cv.Required(CONF_RAW_OUTPUT): cv.use_id(output.FloatOutput),
 
-        cv.Required(CONF_NSLEEP_PIN): pins.internal_gpio_output_pin_number,
+        # PIN SCHEMAS – NOTE: these are from `pins`, not from `cv`
+        cv.Required(CONF_NSLEEP_PIN): pins.gpio_output_pin_schema,
         cv.Optional(CONF_NFAULT_PIN): pins.gpio_input_pin_schema,
-        cv.Optional(CONF_DIRECTION_PIN): pins.internal_gpio_output_pin_number,
+        cv.Optional(CONF_DIRECTION_PIN): pins.gpio_output_pin_schema,
         cv.Optional(CONF_DIRECTION_HIGH, default=True): cv.boolean,
 
         cv.Optional(CONF_MIN_LEVEL, default=0.014): cv.percentage,
