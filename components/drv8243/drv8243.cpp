@@ -52,6 +52,22 @@ void DRV8243Output::dump_config() {
   ESP_LOGCONFIG(TAG, "    Wait HIGH time: %u us", (unsigned) t_wait_high_us_);
 }
 
+void DRV8243Output::run_handshake(const char *reason) {
+  ESP_LOGW(TAG, "run_handshake(): requested (reason=%s)", reason);
+
+  // (Optional) make sure PWM is off while we do the handshake to avoid flicker
+  if (raw_output_ != nullptr) {
+    ESP_LOGI(TAG, "run_handshake(): forcing raw_output OFF (0.0) before handshake");
+    raw_output_->set_level(0.0f);
+  }
+
+  bool ok = this->do_handshake_(reason);
+  this->handshaked_ = true;
+  this->handshake_ok_ = ok;
+
+  ESP_LOGW(TAG, "run_handshake(): done ok=%s", ok ? "true" : "false");
+}
+
 void DRV8243Output::setup() {
   ESP_LOGD(TAG, "Setting up DRV8243 output (setup)");
 
@@ -98,7 +114,7 @@ void DRV8243Output::setup() {
 //            saw_nfault_high_after_ack_ ? "true" : "false");
 }
 
-// void DRV8243Output::pulse_nsleep_ack_() {
+void DRV8243Output::pulse_nsleep_ack_() {
 //   // nSLEEP ACK pulse: LOW for ~30us then HIGH.
 //   // We use InterruptLock to reduce jitter so the pulse stays in the correct window.
 //   ESP_LOGV(TAG, "pulse: entering critical section for ACK pulse");
@@ -109,9 +125,10 @@ void DRV8243Output::setup() {
 //   nsleep_pin_->digital_write(true);
 
 //   ESP_LOGV(TAG, "pulse: ACK pulse done (LOW %u us)", (unsigned) ACK_PULSE_US);
-// }
+}
 
-// bool DRV8243Output::do_handshake_() {
+bool DRV8243Output::do_handshake_() {
+    ESP_LOGW(TAG, "handshake: start");
 //   // Reset debug fields
 //   saw_nfault_low_ = false;
 //   saw_nfault_high_after_ack_ = false;
@@ -218,7 +235,7 @@ void DRV8243Output::setup() {
 
 //   ESP_LOGD(TAG, "handshake: === end === ok=%s", ok ? "true" : "false");
 //   return ok;
-// }
+}
 
 void DRV8243Output::write_state(float state) {
   if (raw_output_ == nullptr) {
