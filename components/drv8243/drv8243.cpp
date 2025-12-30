@@ -1,6 +1,6 @@
 #include "drv8243.h"
 #include "esphome/core/log.h"
-#include "esphome/core/helpers.h" 
+#include "esphome/core/helpers.h"  // <-- add this
 
 #ifdef USE_ESP_IDF
 #include "esp_rom_sys.h"
@@ -32,17 +32,20 @@ void DRV8243Output::setup() {
   if (global_initialized_)
     return;
 
-  delay(300);
+  // Let rails settle
+  delay(300);  // from esphome/core/helpers.h
 
+  // 1) Force SLEEP, then wake
   if (nsleep_pin_ != nullptr) {
     nsleep_pin_->digital_write(false);
     delay(100);
     nsleep_pin_->digital_write(true);
   }
 
+  // 2) Wait for nFAULT LOW (device ready)
   bool ready = false;
   if (nfault_pin_ != nullptr) {
-    uint32_t start = millis();
+    uint32_t start = millis();    // from helpers.h as well
     while (nfault_pin_->digital_read() &&
            (millis() - start) < 1500) {
       delay(5);
@@ -54,6 +57,7 @@ void DRV8243Output::setup() {
     ready = true;
   }
 
+  // 3) ACK pulse: nSLEEP LOW for ~15 µs (<40 µs), then HIGH
   if (ready && nsleep_pin_ != nullptr) {
     nsleep_pin_->digital_write(false);
     #ifdef USE_ESP_IDF
