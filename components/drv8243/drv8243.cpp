@@ -16,7 +16,7 @@ static constexpr uint32_t SLEEP_FORCE_MS = 2;             // force SLEEP long en
 static constexpr uint32_t READY_WAIT_TIMEOUT_US = 5000;   // wait for nFAULT LOW up to 5ms
 static constexpr uint32_t ACK_WAIT_TIMEOUT_US = 5000;     // wait for nFAULT HIGH up to 5ms
 static constexpr uint32_t POLL_STEP_US = 10;              // polling granularity
-static constexpr uint32_t ACK_PULSE_US = 30;              // target in ~20–40us window
+static constexpr uint32_t ACK_PULSE_US = 22;              // target in ~20–40us window
 static constexpr uint32_t DEFER_HANDSHAKE_MS = 1000;      // delay handshake so firmware can boot + logs show
 
 float DRV8243Output::get_setup_priority() const {
