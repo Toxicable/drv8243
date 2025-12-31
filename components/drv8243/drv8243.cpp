@@ -145,27 +145,27 @@ bool DRV8243Output::do_handshake_(const char *reason) {
   ESP_LOGI(TAG, "handshake: step2 wake: nSLEEP->HIGH");
   nsleep_pin_->digital_write(true);
 
-//   // Step 3: Wait for nFAULT LOW (ready), if we can observe it
-//   if (nfault_pin_ != nullptr) {
-//     ESP_LOGI(TAG, "handshake: step3 wait nFAULT LOW (ready), timeout=%u us", (unsigned) READY_WAIT_TIMEOUT_US);
-//     uint32_t start = micros();
-//     while ((micros() - start) < READY_WAIT_TIMEOUT_US) {
-//       if (!nfault_pin_->digital_read()) {
-//         saw_nfault_low_ = true;
-//         t_wait_low_us_ = micros() - start;
-//         ESP_LOGI(TAG, "handshake: step3 success: nFAULT LOW after %u us", (unsigned) t_wait_low_us_);
-//         break;
-//       }
-//       delayMicroseconds(POLL_STEP_US);
-//     }
-//     if (!saw_nfault_low_) {
-//       t_wait_low_us_ = micros() - start;
-//       ESP_LOGW(TAG, "handshake: step3 timeout: never saw nFAULT LOW after %u us", (unsigned) t_wait_low_us_);
-//     }
-//   } else {
-//     ESP_LOGW(TAG, "handshake: step3 skipped (no nFAULT). delaying 2ms best-effort");
-//     delay(2);
-//   }
+  // Step 3: Wait for nFAULT LOW (ready), if we can observe it
+  if (nfault_pin_ != nullptr) {
+    ESP_LOGI(TAG, "handshake: step3 wait nFAULT LOW (ready), timeout=%u us", (unsigned) READY_WAIT_TIMEOUT_US);
+    uint32_t start = micros();
+    // while ((micros() - start) < READY_WAIT_TIMEOUT_US) {
+    //   if (!nfault_pin_->digital_read()) {
+    //     saw_nfault_low_ = true;
+    //     t_wait_low_us_ = micros() - start;
+    //     ESP_LOGI(TAG, "handshake: step3 success: nFAULT LOW after %u us", (unsigned) t_wait_low_us_);
+    //     break;
+    //   }
+    //   delayMicroseconds(POLL_STEP_US);
+    // }
+    if (!saw_nfault_low_) {
+      t_wait_low_us_ = micros() - start;
+      ESP_LOGW(TAG, "handshake: step3 timeout: never saw nFAULT LOW after %u us", (unsigned) t_wait_low_us_);
+    }
+  } else {
+    ESP_LOGW(TAG, "handshake: step3 skipped (no nFAULT). delaying 2ms best-effort");
+    delay(2);
+  }
 
 //   // Step 4: ACK pulse (target ~30us LOW)
 //   ESP_LOGI(TAG, "handshake: step4 ACK pulse on nSLEEP (LOW ~%u us)", (unsigned) ACK_PULSE_US);
