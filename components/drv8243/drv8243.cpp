@@ -195,6 +195,7 @@ bool DRV8243Output::do_handshake_(const char *reason) {
   } else {
     ESP_LOGW(TAG, "handshake: step5 cannot confirm (no nFAULT)");
   }
+  return true;
 
 //   // Final states
 //   bool end_nsleep = nsleep_pin_->digital_read();
