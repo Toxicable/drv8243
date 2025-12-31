@@ -173,8 +173,8 @@ bool DRV8243Output::do_handshake_(const char *reason) {
 
 //   Step 5: Confirm nFAULT HIGH after ACK (if we saw LOW and have the pin)
   if (nfault_pin_ != nullptr && saw_nfault_low_) {
-    ESP_LOGI(TAG, "handshake: step5 wait nFAULT HIGH after ACK, timeout=%u us", (unsigned) ACK_WAIT_TIMEOUT_US);
-    uint32_t start = micros();
+    // ESP_LOGI(TAG, "handshake: step5 wait nFAULT HIGH after ACK, timeout=%u us", (unsigned) ACK_WAIT_TIMEOUT_US);
+    // uint32_t start = micros();
     // while ((micros() - start) < ACK_WAIT_TIMEOUT_US) {
     //   if (nfault_pin_->digital_read()) {
     //     saw_nfault_high_after_ack_ = true;
