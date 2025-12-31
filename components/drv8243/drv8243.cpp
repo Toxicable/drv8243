@@ -167,9 +167,9 @@ bool DRV8243Output::do_handshake_(const char *reason) {
     delay(2);
   }
 
-//   // Step 4: ACK pulse (target ~30us LOW)
-//   ESP_LOGI(TAG, "handshake: step4 ACK pulse on nSLEEP (LOW ~%u us)", (unsigned) ACK_PULSE_US);
-//   this->pulse_nsleep_ack_();
+  // Step 4: ACK pulse (target ~30us LOW)
+  ESP_LOGI(TAG, "handshake: step4 ACK pulse on nSLEEP (LOW ~%u us)", (unsigned) ACK_PULSE_US);
+  this->pulse_nsleep_ack_();
 
   // Step 5: Confirm nFAULT HIGH after ACK (if we saw LOW and have the pin)
 //   if (nfault_pin_ != nullptr && saw_nfault_low_) {
