@@ -172,29 +172,29 @@ bool DRV8243Output::do_handshake_(const char *reason) {
   this->pulse_nsleep_ack_();
 
   // Step 5: Confirm nFAULT HIGH after ACK (if we saw LOW and have the pin)
-//   if (nfault_pin_ != nullptr && saw_nfault_low_) {
-//     ESP_LOGI(TAG, "handshake: step5 wait nFAULT HIGH after ACK, timeout=%u us", (unsigned) ACK_WAIT_TIMEOUT_US);
-//     uint32_t start = micros();
-//     while ((micros() - start) < ACK_WAIT_TIMEOUT_US) {
-//       if (nfault_pin_->digital_read()) {
-//         saw_nfault_high_after_ack_ = true;
-//         t_wait_high_us_ = micros() - start;
-//         ESP_LOGI(TAG, "handshake: step5 success: nFAULT HIGH after %u us", (unsigned) t_wait_high_us_);
-//         break;
-//       }
-//       delayMicroseconds(POLL_STEP_US);
-//     }
-//     if (!saw_nfault_high_after_ack_) {
-//       t_wait_high_us_ = micros() - start;
-//       ESP_LOGW(TAG, "handshake: step5 timeout: nFAULT did not go HIGH after %u us", (unsigned) t_wait_high_us_);
-//     }
-//   } else if (nfault_pin_ != nullptr) {
-//     bool nf = nfault_pin_->digital_read();
-//     ESP_LOGW(TAG, "handshake: step5 skipped confirm (never saw LOW). current nFAULT=%s",
-//              nf ? "HIGH" : "LOW");
-//   } else {
-//     ESP_LOGW(TAG, "handshake: step5 cannot confirm (no nFAULT)");
-//   }
+  if (nfault_pin_ != nullptr && saw_nfault_low_) {
+    ESP_LOGI(TAG, "handshake: step5 wait nFAULT HIGH after ACK, timeout=%u us", (unsigned) ACK_WAIT_TIMEOUT_US);
+    uint32_t start = micros();
+    // while ((micros() - start) < ACK_WAIT_TIMEOUT_US) {
+    //   if (nfault_pin_->digital_read()) {
+    //     saw_nfault_high_after_ack_ = true;
+    //     t_wait_high_us_ = micros() - start;
+    //     ESP_LOGI(TAG, "handshake: step5 success: nFAULT HIGH after %u us", (unsigned) t_wait_high_us_);
+    //     break;
+    //   }
+    //   delayMicroseconds(POLL_STEP_US);
+    // }
+    if (!saw_nfault_high_after_ack_) {
+      t_wait_high_us_ = micros() - start;
+      ESP_LOGW(TAG, "handshake: step5 timeout: nFAULT did not go HIGH after %u us", (unsigned) t_wait_high_us_);
+    }
+  } else if (nfault_pin_ != nullptr) {
+    bool nf = nfault_pin_->digital_read();
+    ESP_LOGW(TAG, "handshake: step5 skipped confirm (never saw LOW). current nFAULT=%s",
+             nf ? "HIGH" : "LOW");
+  } else {
+    ESP_LOGW(TAG, "handshake: step5 cannot confirm (no nFAULT)");
+  }
   return true;
 
 //   // Final states
