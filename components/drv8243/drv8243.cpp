@@ -184,10 +184,10 @@ bool DRV8243Output::do_handshake_(const char *reason) {
     //   }
     //   delayMicroseconds(POLL_STEP_US);
     // }
-    if (!saw_nfault_high_after_ack_) {
-      t_wait_high_us_ = micros() - start;
-      ESP_LOGW(TAG, "handshake: step5 timeout: nFAULT did not go HIGH after %u us", (unsigned) t_wait_high_us_);
-    }
+    // if (!saw_nfault_high_after_ack_) {
+    //   t_wait_high_us_ = micros() - start;
+    //   ESP_LOGW(TAG, "handshake: step5 timeout: nFAULT did not go HIGH after %u us", (unsigned) t_wait_high_us_);
+    // }
   } else if (nfault_pin_ != nullptr) {
     bool nf = nfault_pin_->digital_read();
     ESP_LOGW(TAG, "handshake: step5 skipped confirm (never saw LOW). current nFAULT=%s",
