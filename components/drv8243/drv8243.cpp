@@ -19,9 +19,6 @@ static constexpr uint32_t POLL_STEP_US = 10;
 // ACK pulse: keep close to lower edge to reduce risk of stretching above ~40us
 static constexpr uint32_t ACK_PULSE_US = 22;
 
-// Fault polling (simple + light)
-static constexpr uint32_t FAULT_POLL_MS = 100;
-
 const char *DRV8243Output::handshake_result_str_(HandshakeResult r) const {
   switch (r) {
     case HandshakeResult::NOT_RUN:
@@ -74,36 +71,6 @@ void DRV8243Output::setup() {
     out2_pin_->pin_mode(gpio::FLAG_OUTPUT);
     out2_pin_->digital_write(flip_polarity_);  // default false => LOW
   }
-
-  #ifdef USE_BINARY_SENSOR
-    if (fault_sensor_ && nfault_pin_) {
-    // If fault sensor exists, publish initial state once (won't spam)
-      bool fault_active = !nfault_pin_->digital_read();  // active-low
-      last_fault_ = fault_active;
-      fault_sensor_->publish_state(fault_active);
-    }
-  #endif
-
-}
-
-void DRV8243Output::loop() {
-  #ifdef USE_BINARY_SENSOR
-    // Optional fault reporting
-    if (!fault_sensor_ || !nfault_pin_)
-      return;
-
-    const uint32_t now = millis();
-    if ((now - last_fault_check_ms_) < FAULT_POLL_MS)
-      return;
-    last_fault_check_ms_ = now;
-
-    bool fault_active = !nfault_pin_->digital_read();
-    if (fault_active != last_fault_) {
-      last_fault_ = fault_active;
-      fault_sensor_->publish_state(fault_active);
-    }
-  #endif
-
 }
 
 DRV8243Output::HandshakeResult DRV8243Output::do_handshake_() {
@@ -128,7 +95,7 @@ DRV8243Output::HandshakeResult DRV8243Output::do_handshake_() {
     }
   }
 
-  // ACK pulse (no InterruptLock on ESP32-C3)
+  // ACK pulse
   nsleep_pin_->digital_write(false);
   delayMicroseconds(ACK_PULSE_US);
   nsleep_pin_->digital_write(true);
@@ -156,7 +123,7 @@ void DRV8243Output::write_state(float state) {
 
   // Run handshake once, first time we're asked to turn on (so users see logs)
   if (!handshake_ran_ && state > 0.0005f) {
-    ESP_LOGI(TAG, "Starting DRV8243 (flip_polarity=%s)", flip_polarity_ ? "true" : "false");
+    ESP_LOGI(TAG, "DRV8243 start (flip_polarity=%s)", flip_polarity_ ? "true" : "false");
     handshake_result_ = do_handshake_();
     handshake_ran_ = true;
 
@@ -165,7 +132,7 @@ void DRV8243Output::write_state(float state) {
     } else if (handshake_result_ == HandshakeResult::UNVERIFIED) {
       ESP_LOGW(TAG, "DRV8243 started (nFAULT not verified)");
     } else {
-      ESP_LOGE(TAG, "DRV8243 failed to start (check wiring / pull-ups / nSLEEP)");
+      ESP_LOGE(TAG, "DRV8243 failed to start (check wiring / nSLEEP / nFAULT)");
     }
   }
 

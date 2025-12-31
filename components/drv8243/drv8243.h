@@ -3,11 +3,6 @@
 #include "esphome/core/component.h"
 #include "esphome/components/output/float_output.h"
 #include "esphome/core/gpio.h"
-#include "esphome/core/defines.h"
-
-#ifdef USE_BINARY_SENSOR
-#include "esphome/components/binary_sensor/binary_sensor.h"
-#endif
 
 namespace esphome {
 namespace drv8243 {
@@ -22,16 +17,11 @@ class DRV8243Output : public Component, public output::FloatOutput {
 
   void set_out1_output(output::FloatOutput *out) { out1_output_ = out; }
 
-  #ifdef USE_BINARY_SENSOR
-    void set_fault_sensor(binary_sensor::BinarySensor *s) { fault_sensor_ = s; }
-  #endif
-
   void set_min_level(float v) { min_level_ = v; }
   void set_exponent(float e) { exponent_ = e; }
 
   void setup() override;
   void dump_config() override;
-  void loop() override;
   void write_state(float state) override;
 
  protected:
@@ -42,24 +32,15 @@ class DRV8243Output : public Component, public output::FloatOutput {
 
   GPIOPin *nsleep_pin_{nullptr};
   GPIOPin *nfault_pin_{nullptr};
-  GPIOPin *out2_pin_{nullptr};  // DRV OUT2 / PH mapping
-
+  GPIOPin *out2_pin_{nullptr};           // DRV OUT2 / polarity/static pin
   output::FloatOutput *out1_output_{nullptr};  // DRV OUT1 PWM mapping
-
 
   float min_level_{0.014f};
   float exponent_{1.8f};
   bool flip_polarity_{false};
 
-  // State
   bool handshake_ran_{false};
   HandshakeResult handshake_result_{HandshakeResult::NOT_RUN};
-
-  #ifdef USE_BINARY_SENSOR
-    binary_sensor::BinarySensor *fault_sensor_{nullptr};
-    bool last_fault_{false};
-    uint32_t last_fault_check_ms_{0};
-  #endif
 };
 
 }  // namespace drv8243

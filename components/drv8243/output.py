@@ -1,6 +1,6 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
-from esphome.components import output, binary_sensor
+from esphome.components import output
 from esphome.const import CONF_ID
 from esphome import pins
 
@@ -11,7 +11,6 @@ CONF_NSLEEP_PIN = "nsleep_pin"
 CONF_NFAULT_PIN = "nfault_pin"
 CONF_OUT2_PIN = "out2_pin"
 CONF_FLIP_POLARITY = "flip_polarity"
-CONF_FAULT_SENSOR = "fault_sensor"
 CONF_MIN_LEVEL = "min_level"
 CONF_EXPONENT = "exponent"
 
@@ -26,11 +25,6 @@ CONFIG_SCHEMA = output.FLOAT_OUTPUT_SCHEMA.extend(
 
         cv.Optional(CONF_OUT2_PIN): pins.gpio_output_pin_schema,
         cv.Optional(CONF_FLIP_POLARITY, default=False): cv.boolean,
-
-        # Optional: expose nFAULT as a binary_sensor ("problem" true when fault is active)
-        cv.Optional(CONF_FAULT_SENSOR): binary_sensor.binary_sensor_schema(
-            device_class="problem"
-        ),
 
         cv.Optional(CONF_MIN_LEVEL, default=0.014): cv.percentage,
         cv.Optional(CONF_EXPONENT, default=1.8): cv.float_range(min=0.1, max=5.0),
@@ -58,10 +52,6 @@ async def to_code(config):
         cg.add(var.set_out2_pin(out2))
 
     cg.add(var.set_flip_polarity(config[CONF_FLIP_POLARITY]))
-
-    if CONF_FAULT_SENSOR in config:
-        sens = await binary_sensor.new_binary_sensor(config[CONF_FAULT_SENSOR])
-        cg.add(var.set_fault_sensor(sens))
 
     cg.add(var.set_min_level(config[CONF_MIN_LEVEL]))
     cg.add(var.set_exponent(config[CONF_EXPONENT]))
