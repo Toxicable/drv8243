@@ -149,15 +149,15 @@ bool DRV8243Output::do_handshake_(const char *reason) {
   if (nfault_pin_ != nullptr) {
     ESP_LOGI(TAG, "handshake: step3 wait nFAULT LOW (ready), timeout=%u us", (unsigned) READY_WAIT_TIMEOUT_US);
     uint32_t start = micros();
-    // while ((micros() - start) < READY_WAIT_TIMEOUT_US) {
-    //   if (!nfault_pin_->digital_read()) {
-    //     saw_nfault_low_ = true;
-    //     t_wait_low_us_ = micros() - start;
-    //     ESP_LOGI(TAG, "handshake: step3 success: nFAULT LOW after %u us", (unsigned) t_wait_low_us_);
-    //     break;
-    //   }
-    //   delayMicroseconds(POLL_STEP_US);
-    // }
+    while ((micros() - start) < READY_WAIT_TIMEOUT_US) {
+      if (!nfault_pin_->digital_read()) {
+        saw_nfault_low_ = true;
+        t_wait_low_us_ = micros() - start;
+        ESP_LOGI(TAG, "handshake: step3 success: nFAULT LOW after %u us", (unsigned) t_wait_low_us_);
+        break;
+      }
+      delayMicroseconds(POLL_STEP_US);
+    }
     if (!saw_nfault_low_) {
       t_wait_low_us_ = micros() - start;
       ESP_LOGW(TAG, "handshake: step3 timeout: never saw nFAULT LOW after %u us", (unsigned) t_wait_low_us_);
