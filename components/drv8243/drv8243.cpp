@@ -167,57 +167,58 @@ bool DRV8243Output::do_handshake_(const char *reason) {
     delay(2);
   }
 
-  // Step 4: ACK pulse (target ~30us LOW)
-  ESP_LOGI(TAG, "handshake: step4 ACK pulse on nSLEEP (LOW ~%u us)", (unsigned) ACK_PULSE_US);
-  this->pulse_nsleep_ack_();
+  return true;
+//   // Step 4: ACK pulse (target ~30us LOW)
+//   ESP_LOGI(TAG, "handshake: step4 ACK pulse on nSLEEP (LOW ~%u us)", (unsigned) ACK_PULSE_US);
+//   this->pulse_nsleep_ack_();
 
-  // Step 5: Confirm nFAULT HIGH after ACK (if we saw LOW and have the pin)
-  if (nfault_pin_ != nullptr && saw_nfault_low_) {
-    ESP_LOGI(TAG, "handshake: step5 wait nFAULT HIGH after ACK, timeout=%u us", (unsigned) ACK_WAIT_TIMEOUT_US);
-    uint32_t start = micros();
-    while ((micros() - start) < ACK_WAIT_TIMEOUT_US) {
-      if (nfault_pin_->digital_read()) {
-        saw_nfault_high_after_ack_ = true;
-        t_wait_high_us_ = micros() - start;
-        ESP_LOGI(TAG, "handshake: step5 success: nFAULT HIGH after %u us", (unsigned) t_wait_high_us_);
-        break;
-      }
-      delayMicroseconds(POLL_STEP_US);
-    }
-    if (!saw_nfault_high_after_ack_) {
-      t_wait_high_us_ = micros() - start;
-      ESP_LOGW(TAG, "handshake: step5 timeout: nFAULT did not go HIGH after %u us", (unsigned) t_wait_high_us_);
-    }
-  } else if (nfault_pin_ != nullptr) {
-    bool nf = nfault_pin_->digital_read();
-    ESP_LOGW(TAG, "handshake: step5 skipped confirm (never saw LOW). current nFAULT=%s",
-             nf ? "HIGH" : "LOW");
-  } else {
-    ESP_LOGW(TAG, "handshake: step5 cannot confirm (no nFAULT)");
-  }
+//   // Step 5: Confirm nFAULT HIGH after ACK (if we saw LOW and have the pin)
+//   if (nfault_pin_ != nullptr && saw_nfault_low_) {
+//     ESP_LOGI(TAG, "handshake: step5 wait nFAULT HIGH after ACK, timeout=%u us", (unsigned) ACK_WAIT_TIMEOUT_US);
+//     uint32_t start = micros();
+//     while ((micros() - start) < ACK_WAIT_TIMEOUT_US) {
+//       if (nfault_pin_->digital_read()) {
+//         saw_nfault_high_after_ack_ = true;
+//         t_wait_high_us_ = micros() - start;
+//         ESP_LOGI(TAG, "handshake: step5 success: nFAULT HIGH after %u us", (unsigned) t_wait_high_us_);
+//         break;
+//       }
+//       delayMicroseconds(POLL_STEP_US);
+//     }
+//     if (!saw_nfault_high_after_ack_) {
+//       t_wait_high_us_ = micros() - start;
+//       ESP_LOGW(TAG, "handshake: step5 timeout: nFAULT did not go HIGH after %u us", (unsigned) t_wait_high_us_);
+//     }
+//   } else if (nfault_pin_ != nullptr) {
+//     bool nf = nfault_pin_->digital_read();
+//     ESP_LOGW(TAG, "handshake: step5 skipped confirm (never saw LOW). current nFAULT=%s",
+//              nf ? "HIGH" : "LOW");
+//   } else {
+//     ESP_LOGW(TAG, "handshake: step5 cannot confirm (no nFAULT)");
+//   }
 
-  // Final states
-  bool end_nsleep = nsleep_pin_->digital_read();
-  bool end_nfault = nfault_pin_ ? nfault_pin_->digital_read() : true;
-  ESP_LOGI(TAG, "handshake: end: nSLEEP=%s nFAULT=%s",
-           end_nsleep ? "HIGH" : "LOW",
-           end_nfault ? "HIGH" : "LOW");
+//   // Final states
+//   bool end_nsleep = nsleep_pin_->digital_read();
+//   bool end_nfault = nfault_pin_ ? nfault_pin_->digital_read() : true;
+//   ESP_LOGI(TAG, "handshake: end: nSLEEP=%s nFAULT=%s",
+//            end_nsleep ? "HIGH" : "LOW",
+//            end_nfault ? "HIGH" : "LOW");
 
-  // Always leave awake
-  nsleep_pin_->digital_write(true);
-  ESP_LOGI(TAG, "handshake: final: nSLEEP forced HIGH");
+//   // Always leave awake
+//   nsleep_pin_->digital_write(true);
+//   ESP_LOGI(TAG, "handshake: final: nSLEEP forced HIGH");
 
-  // Determine success
-  bool ok = true;
-  if (nfault_pin_ != nullptr) {
-    ok = saw_nfault_low_ && saw_nfault_high_after_ack_;
-  } else {
-    ok = true;  // best-effort when we can't observe nFAULT
-  }
+//   // Determine success
+//   bool ok = true;
+//   if (nfault_pin_ != nullptr) {
+//     ok = saw_nfault_low_ && saw_nfault_high_after_ack_;
+//   } else {
+//     ok = true;  // best-effort when we can't observe nFAULT
+//   }
 
-  ESP_LOGI(TAG, "handshake: === end === ok=%s", ok ? "true" : "false");
-  handshake_in_progress_ = false;
-  return ok;
+//   ESP_LOGI(TAG, "handshake: === end === ok=%s", ok ? "true" : "false");
+//   handshake_in_progress_ = false;
+//   return ok;
 }
 
 void DRV8243Output::write_state(float state) {
