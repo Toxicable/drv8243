@@ -95,15 +95,19 @@ void DRV8243Output::run_handshake(const char *reason) {
 void DRV8243Output::pulse_nsleep_ack_() {
   if (nsleep_pin_ == nullptr) return;
 
-  ESP_LOGV(TAG, "pulse: ACK pulse start (LOW %u us)", (unsigned) ACK_PULSE_US);
+  ESP_LOGV(TAG, "pulse: ACK pulse start (target LOW %u us)", (unsigned) ACK_PULSE_US);
 
-  // Reduce jitter so the pulse stays in the right microsecond window.
-  // InterruptLock lock;
   nsleep_pin_->digital_write(false);
+  const uint32_t t0 = micros();
   delayMicroseconds(ACK_PULSE_US);
+  const uint32_t low_us = micros() - t0;
   nsleep_pin_->digital_write(true);
 
-  ESP_LOGV(TAG, "pulse: ACK pulse end");
+  ESP_LOGV(TAG, "pulse: ACK pulse end (measured LOW ~%u us)", (unsigned) low_us);
+
+  if (low_us >= 40) {
+    ESP_LOGW(TAG, "pulse: measured LOW >= 40us (%u us) -> likely crossed into SLEEP/undefined window", (unsigned) low_us);
+  }
 }
 
 bool DRV8243Output::do_handshake_(const char *reason) {
