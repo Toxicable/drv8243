@@ -189,11 +189,11 @@ bool DRV8243Output::do_handshake_(const char *reason) {
     //   ESP_LOGW(TAG, "handshake: step5 timeout: nFAULT did not go HIGH after %u us", (unsigned) t_wait_high_us_);
     // }
   } else if (nfault_pin_ != nullptr) {
-    bool nf = nfault_pin_->digital_read();
-    ESP_LOGW(TAG, "handshake: step5 skipped confirm (never saw LOW). current nFAULT=%s",
-             nf ? "HIGH" : "LOW");
+    // bool nf = nfault_pin_->digital_read();
+    // ESP_LOGW(TAG, "handshake: step5 skipped confirm (never saw LOW). current nFAULT=%s",
+    //          nf ? "HIGH" : "LOW");
   } else {
-    ESP_LOGW(TAG, "handshake: step5 cannot confirm (no nFAULT)");
+    // ESP_LOGW(TAG, "handshake: step5 cannot confirm (no nFAULT)");
   }
   return true;
 
