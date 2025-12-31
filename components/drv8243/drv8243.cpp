@@ -75,29 +75,35 @@ void DRV8243Output::setup() {
     out2_pin_->digital_write(flip_polarity_);  // default false => LOW
   }
 
-  // If fault sensor exists, publish initial state once (won't spam)
-  if (fault_sensor_ && nfault_pin_) {
-    bool fault_active = !nfault_pin_->digital_read();  // nFAULT is active-low
-    last_fault_ = fault_active;
-    fault_sensor_->publish_state(fault_active);
-  }
+  #ifdef USE_BINARY_SENSOR
+    if (fault_sensor_ && nfault_pin_) {
+    // If fault sensor exists, publish initial state once (won't spam)
+      bool fault_active = !nfault_pin_->digital_read();  // active-low
+      last_fault_ = fault_active;
+      fault_sensor_->publish_state(fault_active);
+    }
+  #endif
+
 }
 
 void DRV8243Output::loop() {
-  // Optional fault reporting
-  if (!fault_sensor_ || !nfault_pin_)
-    return;
+  #ifdef USE_BINARY_SENSOR
+    // Optional fault reporting
+    if (!fault_sensor_ || !nfault_pin_)
+      return;
 
-  const uint32_t now = millis();
-  if ((now - last_fault_check_ms_) < FAULT_POLL_MS)
-    return;
-  last_fault_check_ms_ = now;
+    const uint32_t now = millis();
+    if ((now - last_fault_check_ms_) < FAULT_POLL_MS)
+      return;
+    last_fault_check_ms_ = now;
 
-  bool fault_active = !nfault_pin_->digital_read();
-  if (fault_active != last_fault_) {
-    last_fault_ = fault_active;
-    fault_sensor_->publish_state(fault_active);
-  }
+    bool fault_active = !nfault_pin_->digital_read();
+    if (fault_active != last_fault_) {
+      last_fault_ = fault_active;
+      fault_sensor_->publish_state(fault_active);
+    }
+  #endif
+
 }
 
 DRV8243Output::HandshakeResult DRV8243Output::do_handshake_() {
